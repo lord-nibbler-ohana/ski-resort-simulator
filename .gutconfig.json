@@ -1,0 +1,8 @@
+{
+	"dirs": ["res://tests/unit", "res://tests/integration"],
+	"prefix": "test_",
+	"suffix": ".gd",
+	"log_level": 2,
+	"junit_xml_file": "res://test_results.xml",
+	"junit_xml_timestamp": true
+}
