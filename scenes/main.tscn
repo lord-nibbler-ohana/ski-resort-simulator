@@ -42,6 +42,20 @@ z_index = 1
 layer = 10
 script = ExtResource("4_hud")
 
+[node name="ClockPanel" type="PanelContainer" parent="HUD"]
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 200.0
+offset_bottom = 70.0
+theme_override_styles/panel = SubResource("panel_style")
+
+[node name="TimeLabel" type="Label" parent="HUD/ClockPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "09:30"
+
 [node name="Panel" type="PanelContainer" parent="HUD"]
 anchors_preset = 12
 anchor_top = 1.0
@@ -56,11 +70,6 @@ theme_override_styles/panel = SubResource("panel_style")
 layout_mode = 2
 theme_override_constants/separation = 30
 
-[node name="TimeLabel" type="Label" parent="HUD/Panel/HBox"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "09:30"
-
 [node name="StatsLabel" type="Label" parent="HUD/Panel/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -71,11 +80,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Wind: 5.0 m/s | Temp: -5°C"
 
-[node name="QueueLabel" type="Label" parent="HUD/Panel/HBox"]
+[node name="IncomeLabel" type="Label" parent="HUD/Panel/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Queues: empty"
+text = "Skipass: 0 kr | Kiosk: 0 kr | Restaurant: 0 kr"
 
 [node name="SpeedControls" type="HBoxContainer" parent="HUD/Panel/HBox"]
 layout_mode = 2

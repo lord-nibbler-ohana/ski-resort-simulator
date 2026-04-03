@@ -4,6 +4,10 @@ extends Node
 var _queues: Dictionary = {}
 # Rider count per lift: Dictionary[String, int]
 var _rider_counts: Dictionary = {}
+# Loading accumulator per lift — fractional skiers to load
+var _load_accumulators: Dictionary = {}
+# Trail usage tracking: trail_id -> count of completed runs
+var trail_usage: Dictionary = {}
 # Visual queue offset
 const QUEUE_SPACING := 8.0  # pixels between queued skiers
 
@@ -15,9 +19,11 @@ func _ready() -> void:
 func initialize_queues() -> void:
 	_queues.clear()
 	_rider_counts.clear()
+	_load_accumulators.clear()
 	for lift in ResortData.lifts:
 		_queues[lift.id] = []
 		_rider_counts[lift.id] = 0
+		_load_accumulators[lift.id] = 0.0
 
 
 func enqueue(lift_id: String, skier: Skier) -> void:
@@ -39,15 +45,16 @@ func get_rider_count(lift_id: String) -> int:
 	return _rider_counts.get(lift_id, 0)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if SimulationManager.sim_speed <= 0.0:
 		return
 
+	var sim_delta := delta * SimulationManager.sim_speed
 	for lift in ResortData.lifts:
-		_process_lift_queue(lift)
+		_process_lift_queue(lift, sim_delta)
 
 
-func _process_lift_queue(lift: LiftDefinition) -> void:
+func _process_lift_queue(lift: LiftDefinition, sim_delta: float) -> void:
 	var queue: Array = _queues.get(lift.id, [])
 	var current_time := SimulationManager.game_time
 
@@ -66,29 +73,40 @@ func _process_lift_queue(lift: LiftDefinition) -> void:
 	if queue.is_empty():
 		return
 
-	var riders: int = _rider_counts.get(lift.id, 0)
-	if riders >= lift.capacity:
-		return
-
 	# Chairlift check: if wind too high, don't load
 	if lift.lift_type == LiftDefinition.LiftType.CHAIRLIFT:
 		if not WeatherSystem.chairlift_operational:
 			return
 
-	# Load next skier onto lift
-	var skier: Skier = queue.pop_front()
-	_rider_counts[lift.id] = riders + 1
+	# Time-based loading: accumulate fractional skiers based on capacity_per_hour
+	var load_rate := lift.capacity_per_hour / 3600.0  # skiers per second
+	_load_accumulators[lift.id] += load_rate * sim_delta
 
-	# Check group: if skier is in a group, try to load group members together
-	if skier.group_id >= 0:
-		_try_load_group_members(lift, queue, skier.group_id)
+	var skiers_to_load := int(_load_accumulators[lift.id])
+	if skiers_to_load <= 0:
+		return
+	_load_accumulators[lift.id] -= skiers_to_load
 
-	# Reparent skier to lift path
-	var lift_path := PathRegistry.get_lift_path(lift.path_node_name)
-	if lift_path:
-		PathRegistry.reparent_to_path(skier, lift_path)
-		skier.start_riding_lift(lift.speed_kmh)
-		skier.reached_path_end.connect(_on_skier_reached_lift_top.bind(skier, lift), CONNECT_ONE_SHOT)
+	var loaded := 0
+	while loaded < skiers_to_load and not queue.is_empty():
+		var riders: int = _rider_counts.get(lift.id, 0)
+		if riders >= lift.capacity:
+			break
+
+		var skier: Skier = queue.pop_front()
+		_rider_counts[lift.id] = riders + 1
+		loaded += 1
+
+		# Check group: if skier is in a group, try to load group members together
+		if skier.group_id >= 0:
+			_try_load_group_members(lift, queue, skier.group_id)
+
+		# Reparent skier to lift path
+		var lift_path := PathRegistry.get_lift_path(lift.path_node_name)
+		if lift_path:
+			PathRegistry.reparent_to_path(skier, lift_path)
+			skier.start_riding_lift(lift.speed_kmh)
+			skier.reached_path_end.connect(_on_skier_reached_lift_top.bind(skier, lift), CONNECT_ONE_SHOT)
 
 	_update_queue_positions(lift.id)
 
@@ -132,15 +150,23 @@ func _on_skier_reached_lift_top(skier: Skier, lift: LiftDefinition) -> void:
 	SkierPool.release(skier)
 
 
-const CHAIRLIFT_QUEUE_THRESHOLD := 20
+const QUEUE_OVERFLOW_THRESHOLD := 20
+const QUEUE_HIGH_THRESHOLD := 35
 
 func _on_skier_reached_trail_bottom(skier: Skier, trail: TrailDefinition) -> void:
 	skier.arrive_at_base()
 
+	# Track trail usage
+	trail_usage[trail.id] = trail_usage.get(trail.id, 0) + 1
+
+	# Kiosk purchase chance (once per visit)
+	if not skier.has_bought_kiosk and randf() < IncomeManager.KIOSK_CHANCE:
+		skier.has_bought_kiosk = true
+		IncomeManager.add_kiosk()
+
 	# Group wait: if in a group, wait for others
 	if skier.group_id >= 0:
 		skier.waiting_for_group = true
-		# Check after a short delay (handled by group system in SimulationManager)
 
 	# Lunch check: between 11:30-13:30, if hasn't eaten yet
 	if not skier.has_eaten_lunch:
@@ -148,6 +174,7 @@ func _on_skier_reached_trail_bottom(skier: Skier, trail: TrailDefinition) -> voi
 		if time >= 41400.0 and time <= 48600.0:  # 11:30 to 13:30
 			if randf() < 0.3:  # 30% chance per run during lunch window
 				skier.start_lunch()
+				IncomeManager.add_restaurant()
 				skier.reached_path_end.connect(
 					_requeue_after_lunch.bind(skier, trail), CONNECT_ONE_SHOT)
 				return
@@ -157,22 +184,41 @@ func _on_skier_reached_trail_bottom(skier: Skier, trail: TrailDefinition) -> voi
 		SkierPool.release(skier)
 		return
 
-	# Pick next lift with queue-aware routing
-	var next_lift := _pick_next_lift(trail)
+	# Check if preferred lift queue is very long — take a break
+	if skier.preferred_lift_id != "":
+		var pref_queue := get_queue_length(skier.preferred_lift_id)
+		if pref_queue > QUEUE_HIGH_THRESHOLD and randf() < 0.3:
+			skier.start_break()
+			skier.reached_path_end.connect(
+				_requeue_after_break.bind(skier, trail), CONNECT_ONE_SHOT)
+			return
+
+	# Pick next lift with preferred-lift and queue-aware routing
+	var next_lift := _pick_next_lift(skier, trail)
 	if next_lift:
 		enqueue(next_lift.id, skier)
 	else:
 		SkierPool.release(skier)
 
 
-func _pick_next_lift(trail: TrailDefinition) -> LiftDefinition:
-	# Queue-aware routing: if chairlift queue is long, prefer Nyestøl
-	var chair_queue := get_queue_length("tjørhom_chair")
-	if chair_queue > CHAIRLIFT_QUEUE_THRESHOLD:
-		if trail.mountain_area == "tjørhomfjellet" and randf() < 0.6:
+func _pick_next_lift(skier: Skier, trail: TrailDefinition) -> LiftDefinition:
+	# Prefer the skier's starting lift
+	var preferred_id := skier.preferred_lift_id
+	if preferred_id != "":
+		var pref_queue := get_queue_length(preferred_id)
+
+		# Moderate overflow: redirect to Nyestøl
+		if pref_queue > QUEUE_OVERFLOW_THRESHOLD and randf() < 0.4:
 			var nyestol_lift := ResortData.get_lift("nyestol_daafjell")
 			if nyestol_lift:
 				return nyestol_lift
+
+		# Normal: return to preferred lift
+		var pref_lift := ResortData.get_lift(preferred_id)
+		if pref_lift:
+			return pref_lift
+
+	# Fallback: random connected lift
 	return ResortData.get_random_lift_from_trail(trail.id)
 
 
@@ -180,7 +226,18 @@ func _requeue_after_lunch(skier: Skier, trail: TrailDefinition) -> void:
 	if skier.should_leave():
 		SkierPool.release(skier)
 		return
-	var next_lift := _pick_next_lift(trail)
+	var next_lift := _pick_next_lift(skier, trail)
+	if next_lift:
+		enqueue(next_lift.id, skier)
+	else:
+		SkierPool.release(skier)
+
+
+func _requeue_after_break(skier: Skier, trail: TrailDefinition) -> void:
+	if skier.should_leave():
+		SkierPool.release(skier)
+		return
+	var next_lift := _pick_next_lift(skier, trail)
 	if next_lift:
 		enqueue(next_lift.id, skier)
 	else:

@@ -1,7 +1,7 @@
 extends PathFollow2D
 class_name Skier
 
-enum State { INACTIVE, WALKING, QUEUING, RIDING_LIFT, AT_SUMMIT, SKIING_DOWN, AT_BASE, LUNCH }
+enum State { INACTIVE, WALKING, QUEUING, RIDING_LIFT, AT_SUMMIT, SKIING_DOWN, AT_BASE, LUNCH, BREAK }
 enum EntityType { SKIER, SNOWBOARDER }
 enum SkillLevel { BEGINNER, INTERMEDIATE, ADVANCED, EXPERT }
 
@@ -24,6 +24,14 @@ var group_id: int = -1  # -1 = solo
 var is_group_leader: bool = false
 var waiting_for_group: bool = false
 
+# Routing
+var preferred_lift_id: String = ""
+
+# Income
+var is_season_pass: bool = false
+var skipass_type: int = 0  # 0=full day, 1=morning, 2=afternoon
+var has_bought_kiosk: bool = false
+
 # Stay duration
 var arrival_time: float = 0.0
 var planned_departure_time: float = 57600.0  # default end of day
@@ -32,6 +40,11 @@ var planned_departure_time: float = 57600.0  # default end of day
 var has_eaten_lunch: bool = false
 var lunch_timer: float = 0.0
 const LUNCH_DURATION := 2700.0  # 45 minutes in seconds
+
+# Break (short rest when queues are high)
+var break_timer: float = 0.0
+const BREAK_DURATION_MIN := 600.0   # 10 minutes
+const BREAK_DURATION_MAX := 900.0   # 15 minutes
 
 # Skill-based speed multiplier
 var speed_multiplier: float = 1.0
@@ -56,6 +69,7 @@ const STATE_COLORS := {
 	State.SKIING_DOWN: Color(0.1, 0.9, 0.3),    # Green
 	State.AT_BASE: Color(0.8, 0.8, 0.8),        # Gray
 	State.LUNCH: Color(0.9, 0.5, 0.1),          # Dark orange
+	State.BREAK: Color(0.6, 0.8, 0.9),          # Light blue
 }
 
 # Snowboarder is slightly different shade
@@ -161,12 +175,14 @@ func start_queuing() -> void:
 func start_riding_lift(lift_speed_kmh: float) -> void:
 	set_state(State.RIDING_LIFT)
 	progress_ratio = 0.0
+	waiting_for_group = false
 	speed_px_per_sec = _kmh_to_px_per_sec(lift_speed_kmh)
 
 
 func start_skiing(difficulty: TrailDefinition.Difficulty) -> void:
 	set_state(State.SKIING_DOWN)
 	progress_ratio = 0.0
+	waiting_for_group = false
 	var base_speed: float = TRAIL_SPEED_KMH.get(difficulty, 20.0)
 	speed_px_per_sec = _kmh_to_px_per_sec(base_speed * speed_multiplier)
 
@@ -206,6 +222,12 @@ func start_lunch() -> void:
 	has_eaten_lunch = true
 
 
+func start_break() -> void:
+	set_state(State.BREAK)
+	speed_px_per_sec = 0.0
+	break_timer = randf_range(BREAK_DURATION_MIN, BREAK_DURATION_MAX)
+
+
 func arrive_at_base() -> void:
 	set_state(State.AT_BASE)
 	runs_completed += 1
@@ -229,6 +251,11 @@ func deactivate() -> void:
 	planned_departure_time = 57600.0
 	has_eaten_lunch = false
 	lunch_timer = 0.0
+	break_timer = 0.0
+	preferred_lift_id = ""
+	is_season_pass = false
+	skipass_type = 0
+	has_bought_kiosk = false
 
 
 func should_leave() -> bool:
@@ -251,6 +278,13 @@ func _process(delta: float) -> void:
 	if state == State.LUNCH:
 		lunch_timer -= delta * SimulationManager.sim_speed
 		if lunch_timer <= 0.0:
+			arrive_at_base()
+			reached_path_end.emit()
+		return
+
+	if state == State.BREAK:
+		break_timer -= delta * SimulationManager.sim_speed
+		if break_timer <= 0.0:
 			arrive_at_base()
 			reached_path_end.emit()
 		return

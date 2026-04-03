@@ -13,6 +13,9 @@ const ARRIVAL_STD_DEV := 3600.0       # 1 hour standard deviation
 const TOTAL_CARS_TARGET := 250.0      # total cars expected over the day
 const ARRIVAL_CUTOFF := 50400.0       # 14:00 — very few arrivals after this
 
+# Early arrivals (09:30-09:50) go to chairlift
+const EARLY_ARRIVAL_END := 35400.0    # 09:50 in seconds since midnight
+
 var _spawn_timer: float = 0.0
 var _next_spawn_time: float = 5.0
 var _spawning_active: bool = true
@@ -73,15 +76,25 @@ func _spawn_car() -> void:
 		skier.set_arrival_time(SimulationManager.game_time)
 		skiers.append(skier)
 
+		# Season pass and skipass
+		skier.is_season_pass = IncomeManager.is_season_pass_holder()
+		if not skier.is_season_pass:
+			skier.skipass_type = IncomeManager.roll_skipass_type()
+			IncomeManager.add_skipass(skier.skipass_type)
+
 		# Place skier at parking and start walking to lift
 		var walk_path := PathRegistry.get_walk_path(parking.walk_path_node_name)
 		if walk_path:
 			PathRegistry.reparent_to_path(skier, walk_path)
 			skier.start_walking(5.0)  # 5 km/h walking speed
 
-			# Pick a lift to head to
-			if not parking.nearest_lift_ids.is_empty():
+			# Pick a lift to head to — early arrivals go to chairlift
+			if SimulationManager.game_time <= EARLY_ARRIVAL_END:
+				skier.current_lift_id = "tjørhom_chair"
+			elif not parking.nearest_lift_ids.is_empty():
 				skier.current_lift_id = parking.nearest_lift_ids[randi() % parking.nearest_lift_ids.size()]
+
+			skier.preferred_lift_id = skier.current_lift_id
 
 			skier.reached_path_end.connect(
 				_on_skier_reached_lift_area.bind(skier), CONNECT_ONE_SHOT)
@@ -105,7 +118,12 @@ func _queue_skier_at_parking(skier: Skier, parking: ParkingDefinition) -> void:
 	if parking.nearest_lift_ids.is_empty():
 		SkierPool.release(skier)
 		return
-	var lift_id := parking.nearest_lift_ids[randi() % parking.nearest_lift_ids.size()]
+	var lift_id: String
+	if SimulationManager.game_time <= EARLY_ARRIVAL_END:
+		lift_id = "tjørhom_chair"
+	else:
+		lift_id = parking.nearest_lift_ids[randi() % parking.nearest_lift_ids.size()]
+	skier.preferred_lift_id = lift_id
 	LiftQueueManager.enqueue(lift_id, skier)
 
 

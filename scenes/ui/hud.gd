@@ -3,7 +3,7 @@ extends CanvasLayer
 @onready var time_label: Label = %TimeLabel
 @onready var stats_label: Label = %StatsLabel
 @onready var weather_label: Label = %WeatherLabel
-@onready var queue_label: Label = %QueueLabel
+@onready var income_label: Label = %IncomeLabel
 @onready var speed_label: Label = %SpeedLabel
 
 var _update_timer: float = 0.0
@@ -43,15 +43,12 @@ func _update_display() -> void:
 		else:
 			weather_label.add_theme_color_override("font_color", Color.WHITE)
 
-	if queue_label:
-		var queue_text := "Queues: "
-		var parts: PackedStringArray = []
-		for lift in ResortData.lifts:
-			var qlen := LiftQueueManager.get_queue_length(lift.id)
-			var riders := LiftQueueManager.get_rider_count(lift.id)
-			if qlen > 0 or riders > 0:
-				parts.append("%s: %d/%d" % [lift.display_name.get_slice(" ", 0), qlen, riders])
-		queue_label.text = queue_text + ", ".join(parts) if not parts.is_empty() else "Queues: empty"
+	if income_label:
+		income_label.text = "Skipass: %d kr | Kiosk: %d kr | Restaurant: %d kr | Total: %d kr" % [
+			int(IncomeManager.skipass_revenue),
+			int(IncomeManager.kiosk_revenue),
+			int(IncomeManager.restaurant_revenue),
+			int(IncomeManager.get_total())]
 
 	if speed_label:
 		var spd := SimulationManager.sim_speed

@@ -18,6 +18,7 @@ SkierPool="*res://systems/skier_pool.gd"
 LiftQueueManager="*res://systems/lift_queue_manager.gd"
 WeatherSystem="*res://systems/weather_system.gd"
 Spawner="*res://systems/spawner.gd"
+IncomeManager="*res://systems/income_manager.gd"
 SimulationManager="*res://systems/simulation_manager.gd"
 
 [display]
