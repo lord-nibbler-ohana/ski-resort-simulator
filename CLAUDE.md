@@ -64,9 +64,11 @@ Each transition **reparents** the Skier (which extends PathFollow2D) to a new Pa
 
 ## Key patterns
 
-**Speed conversion:** `kmh * MAP_PIXELS_PER_KM / 3600.0 * GAME_SPEED_MULTIPLIER` where map is 5551px wide (~2km), multiplier is 80x for visual feel.
+**Speed conversion:** `kmh * MAP_PIXELS_PER_KM / 3600.0 * GAME_SPEED_MULTIPLIER` where map is 5551px wide (~2km), multiplier is 1.0 (real-time at 1x sim speed). Use sim speed 2x/4x/8x for faster viewing.
 
-**Trail difficulty speeds:** GREEN=15, BLUE=30, RED=45 km/h base, multiplied by skier skill (0.6x beginner to 1.6x expert). Snowboarders get 0.9x penalty.
+**Trail difficulty speeds:** GREEN=12, BLUE=22, RED=32 km/h base, multiplied by skier skill (0.6x beginner to 1.6x expert). Snowboarders get 0.9x penalty. Max effective speed ~50 km/h (expert on red).
+
+**Stop points:** Skiers stop 2-6 times per run (skill-dependent: beginners 4-6, experts 2-3). Each stop lasts 5-15 seconds (sim-time). Stop points are random positions along the trail (progress_ratio 0.1–0.9).
 
 **Adding lifts/trails:** Update both `ResortData._create_lifts/trails()` (data) and `PathBuilder._build_lift/trail_paths()` (geometry). Path node names must match between the two.
 

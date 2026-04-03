@@ -43,58 +43,75 @@ layer = 10
 script = ExtResource("4_hud")
 
 [node name="Panel" type="PanelContainer" parent="HUD"]
-offset_right = 620.0
-offset_bottom = 150.0
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -120.0
+grow_horizontal = 2
+grow_vertical = 0
 theme_override_styles/panel = SubResource("panel_style")
 
-[node name="VBox" type="VBoxContainer" parent="HUD/Panel"]
+[node name="HBox" type="HBoxContainer" parent="HUD/Panel"]
 layout_mode = 2
+theme_override_constants/separation = 30
 
-[node name="StatsLabel" type="Label" parent="HUD/Panel/VBox"]
+[node name="TimeLabel" type="Label" parent="HUD/Panel/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "09:30"
+
+[node name="StatsLabel" type="Label" parent="HUD/Panel/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Skiers: 0 | Cars: 0 | Total spawned: 0"
 
-[node name="WeatherLabel" type="Label" parent="HUD/Panel/VBox"]
+[node name="WeatherLabel" type="Label" parent="HUD/Panel/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Wind: 5.0 m/s | Temp: -5°C"
 
-[node name="QueueLabel" type="Label" parent="HUD/Panel/VBox"]
+[node name="QueueLabel" type="Label" parent="HUD/Panel/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Queues: empty"
 
-[node name="SpeedControls" type="HBoxContainer" parent="HUD/Panel/VBox"]
+[node name="SpeedControls" type="HBoxContainer" parent="HUD/Panel/HBox"]
 layout_mode = 2
 
-[node name="SpeedLabel" type="Label" parent="HUD/Panel/VBox/SpeedControls"]
+[node name="SpeedLabel" type="Label" parent="HUD/Panel/HBox/SpeedControls"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Speed: 1x"
 
-[node name="PauseBtn" type="Button" parent="HUD/Panel/VBox/SpeedControls"]
+[node name="PauseBtn" type="Button" parent="HUD/Panel/HBox/SpeedControls"]
 layout_mode = 2
 text = "Pause"
 
-[node name="Speed1x" type="Button" parent="HUD/Panel/VBox/SpeedControls"]
+[node name="Speed1x" type="Button" parent="HUD/Panel/HBox/SpeedControls"]
 layout_mode = 2
 text = "1x"
 
-[node name="Speed2x" type="Button" parent="HUD/Panel/VBox/SpeedControls"]
-layout_mode = 2
-text = "2x"
-
-[node name="Speed4x" type="Button" parent="HUD/Panel/VBox/SpeedControls"]
+[node name="Speed4x" type="Button" parent="HUD/Panel/HBox/SpeedControls"]
 layout_mode = 2
 text = "4x"
 
+[node name="Speed10x" type="Button" parent="HUD/Panel/HBox/SpeedControls"]
+layout_mode = 2
+text = "10x"
+
+[node name="Speed25x" type="Button" parent="HUD/Panel/HBox/SpeedControls"]
+layout_mode = 2
+text = "25x"
+
 [node name="CameraController" type="Camera2D" parent="."]
-position = Vector2(2775, 1388)
-zoom = Vector2(0.4, 0.4)
+position = Vector2(2775, 1561)
+zoom = Vector2(0.346, 0.346)
 script = ExtResource("3_camera")
 
-[connection signal="pressed" from="HUD/Panel/VBox/SpeedControls/PauseBtn" to="HUD" method="_on_pause_pressed"]
-[connection signal="pressed" from="HUD/Panel/VBox/SpeedControls/Speed1x" to="HUD" method="_on_speed_1x_pressed"]
-[connection signal="pressed" from="HUD/Panel/VBox/SpeedControls/Speed2x" to="HUD" method="_on_speed_2x_pressed"]
-[connection signal="pressed" from="HUD/Panel/VBox/SpeedControls/Speed4x" to="HUD" method="_on_speed_4x_pressed"]
+[connection signal="pressed" from="HUD/Panel/HBox/SpeedControls/PauseBtn" to="HUD" method="_on_pause_pressed"]
+[connection signal="pressed" from="HUD/Panel/HBox/SpeedControls/Speed1x" to="HUD" method="_on_speed_1x_pressed"]
+[connection signal="pressed" from="HUD/Panel/HBox/SpeedControls/Speed4x" to="HUD" method="_on_speed_4x_pressed"]
+[connection signal="pressed" from="HUD/Panel/HBox/SpeedControls/Speed10x" to="HUD" method="_on_speed_10x_pressed"]
+[connection signal="pressed" from="HUD/Panel/HBox/SpeedControls/Speed25x" to="HUD" method="_on_speed_25x_pressed"]

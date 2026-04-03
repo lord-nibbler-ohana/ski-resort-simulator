@@ -74,54 +74,77 @@ static func get_random_parking() -> ParkingDefinition:
 
 static func _create_lifts() -> void:
 	lifts.clear()
+	# Numbers match official Sirdal Fjellpark lift numbering on the trail map.
 
-	# Tjørhomfjellet area - main chairlift (LEITNER 4-seat detachable, 1404m long)
+	# Lift 1: Hølen — single lift, Ålsheia (lower area)
+	lifts.append(_make_lift("alsheia_holen", "Hølen",
+		LiftDefinition.LiftType.BUTTON, 8.0, "LiftAlsheiaHolen",
+		20, 560.0, 650.0,
+		["trail_alsheia_green_2"],
+		36000.0, 57600.0, 600))  # 10:00-16:00
+
+	# Lift 2: T-bar, Ålsheia (main)
+	lifts.append(_make_lift("alsheia_tbar", "Ålsheia Skitrekk",
+		LiftDefinition.LiftType.TBAR, 8.0, "LiftAlsheiaTbar",
+		30, 560.0, 810.0,
+		["trail_alsheia_blue_1", "trail_alsheia_red_1", "trail_alsheia_green_1", "trail_connect_alsheia_nyestol"],
+		36000.0, 57600.0, 600))  # 10:00-16:00
+
+	# Lift 3: Single lift, Ålsheia (parallel to T-bar, shared summit)
+	lifts.append(_make_lift("alsheia_single", "Ålsheia Enkeltheis",
+		LiftDefinition.LiftType.BUTTON, 8.0, "LiftAlsheiaSingle",
+		25, 560.0, 810.0,
+		["trail_alsheia_blue_2", "trail_alsheia_green_1"],
+		36000.0, 57600.0, 600))  # 10:00-16:00
+
+	# Lift 4: Barnetrekk — children's conveyor belt, Ålsheia (trail beside lift)
+	lifts.append(_make_lift("alsheia_barnetrekk", "Ålsheia Barnetrekk",
+		LiftDefinition.LiftType.BUTTON, 3.0, "LiftAlsheiaBarnetrekk",
+		10, 560.0, 580.0,
+		["trail_alsheia_barnetrekk"],
+		36000.0, 57600.0, 300))  # 10:00-16:00
+
+	# Lift 5: Slettekvævheisen — T-bar, Nyestøl
+	lifts.append(_make_lift("nyestol_slettekvaev", "Slettekvævheisen",
+		LiftDefinition.LiftType.TBAR, 8.0, "LiftNyestolSlettekvaev",
+		25, 580.0, 700.0,
+		["trail_nyestol_blue_2", "trail_nyestol_red_1"],
+		34200.0, 55800.0, 600))  # 09:30-15:30
+
+	# Lift 6: Dåfjellheisen — Nyestøl
+	lifts.append(_make_lift("nyestol_daafjell", "Dåfjellheisen",
+		LiftDefinition.LiftType.TBAR, 8.0, "LiftNyestolDaafjell",
+		30, 560.0, 700.0,
+		["trail_nyestol_blue_1", "trail_nyestol_green_1"],
+		34200.0, 55800.0, 600))  # 09:30-15:30
+
+	# Lift 7: Koblingsheisen — connects Tjørhomfjellet with Nyestøl and back to chairlift
+	lifts.append(_make_lift("koblings", "Koblingsheisen",
+		LiftDefinition.LiftType.TBAR, 8.0, "LiftKoblings",
+		20, 700.0, 750.0,
+		["trail_connect_tjørhom_nyestol", "trail_tjørhom_green_1", "trail_tjørhom_blue_1"],
+		34200.0, 55800.0, 600))  # 09:30-15:30
+
+	# Lift 8: Tjørhomfjellet Stolheis — 4-seat chairlift (LEITNER, 1404m, 2005)
 	lifts.append(_make_lift("tjørhom_chair", "Tjørhomfjellet Stolheis",
 		LiftDefinition.LiftType.CHAIRLIFT, 15.0, "LiftTjorhomChair",
 		60, 560.0, 928.0,
-		["trail_tjørhom_green_1", "trail_tjørhom_blue_1", "trail_tjørhom_red_1"]))
+		["trail_tjørhom_green_1", "trail_tjørhom_blue_1", "trail_tjørhom_red_1", "trail_connect_tjørhom_nyestol"],
+		34200.0, 55800.0, 2400))  # 09:30-15:30, 2400 pax/hr
 
-	# Tjørhomfjellet T-bar
-	lifts.append(_make_lift("tjørhom_tbar", "Tjørhomfjellet Skitrekk",
-		LiftDefinition.LiftType.TBAR, 8.0, "LiftTjorhomTbar",
-		30, 560.0, 776.0,
-		["trail_tjørhom_green_1", "trail_tjørhom_blue_1"]))
-
-	# Hulderheimen button lift (beginner/children's area)
-	lifts.append(_make_lift("hulderheimen_button", "Hulderheimen Knappheis",
-		LiftDefinition.LiftType.BUTTON, 8.0, "LiftHulderButton",
+	# Lift 9: Hulderheimen (LEITNER J-bar, 354m, 2004)
+	lifts.append(_make_lift("hulderheimen", "Hulderheimen",
+		LiftDefinition.LiftType.BUTTON, 8.0, "LiftHulderheimen",
 		20, 560.0, 620.0,
-		["trail_hulder_green_1", "trail_hulder_green_2"]))
+		["trail_hulder_green_1", "trail_hulder_green_2"],
+		36000.0, 57600.0, 700))  # 10:00-16:00, 700 pax/hr
 
-	# Nyestøl T-bar 1 (Dåfjellheisen)
-	lifts.append(_make_lift("nyestol_tbar_1", "Dåfjellheisen",
-		LiftDefinition.LiftType.TBAR, 8.0, "LiftNyestolTbar1",
-		30, 560.0, 700.0,
-		["trail_nyestol_blue_1", "trail_nyestol_green_1"]))
-
-	# Nyestøl T-bar 2 (Slettekvævheisen)
-	lifts.append(_make_lift("nyestol_tbar_2", "Slettekvævheisen",
-		LiftDefinition.LiftType.TBAR, 8.0, "LiftNyestolTbar2",
-		25, 580.0, 700.0,
-		["trail_nyestol_blue_2", "trail_nyestol_red_1"]))
-
-	# Ålsheia T-bar 1
-	lifts.append(_make_lift("alsheia_tbar_1", "Ålsheia Skitrekk 1",
-		LiftDefinition.LiftType.TBAR, 8.0, "LiftAlsheiaTbar1",
-		30, 560.0, 810.0,
-		["trail_alsheia_blue_1", "trail_alsheia_red_1", "trail_alsheia_green_1"]))
-
-	# Ålsheia T-bar 2
-	lifts.append(_make_lift("alsheia_tbar_2", "Ålsheia Skitrekk 2",
-		LiftDefinition.LiftType.TBAR, 8.0, "LiftAlsheiaTbar2",
-		25, 560.0, 740.0,
-		["trail_alsheia_blue_2", "trail_alsheia_green_1"]))
-
-	# Ålsheia button lift (lower)
-	lifts.append(_make_lift("alsheia_button", "Ålsheia Knappheis",
-		LiftDefinition.LiftType.BUTTON, 8.0, "LiftAlsheiaButton",
-		20, 560.0, 650.0,
-		["trail_alsheia_green_2"]))
+	# Lift 10: Hulderheimen rope lift — children's area (trail beside lift)
+	lifts.append(_make_lift("hulderheimen_rope", "Hulderheimen Tautrekk",
+		LiftDefinition.LiftType.BUTTON, 2.0, "LiftHulderRope",
+		10, 560.0, 575.0,
+		["trail_hulder_rope"],
+		36000.0, 57600.0, 200))  # 10:00-16:00
 
 
 static func _create_trails() -> void:
@@ -131,75 +154,92 @@ static func _create_trails() -> void:
 	trails.append(_make_trail("trail_tjørhom_green_1", "Tjørhom Grønn",
 		TrailDefinition.Difficulty.GREEN, "TrailTjorhomGreen1",
 		"tjørhomfjellet", 928.0, 560.0,
-		["tjørhom_chair", "tjørhom_tbar"]))
+		["tjørhom_chair"]))
 	trails.append(_make_trail("trail_tjørhom_blue_1", "Tjørhom Blå",
 		TrailDefinition.Difficulty.BLUE, "TrailTjorhomBlue1",
 		"tjørhomfjellet", 928.0, 560.0,
-		["tjørhom_chair", "tjørhom_tbar"]))
+		["tjørhom_chair"]))
 	trails.append(_make_trail("trail_tjørhom_red_1", "Tjørhom Rød",
 		TrailDefinition.Difficulty.RED, "TrailTjorhomRed1",
 		"tjørhomfjellet", 928.0, 560.0,
-		["tjørhom_chair", "tjørhom_tbar"]))
+		["tjørhom_chair"]))
 
 	# Hulderheimen trails (beginner/children's area, 620m top, 560m base)
 	trails.append(_make_trail("trail_hulder_green_1", "Hulderheimen Grønn 1",
 		TrailDefinition.Difficulty.GREEN, "TrailHulderGreen1",
 		"hulderheimen", 620.0, 560.0,
-		["hulderheimen_button", "tjørhom_tbar"]))
+		["hulderheimen", "tjørhom_chair"]))
 	trails.append(_make_trail("trail_hulder_green_2", "Hulderheimen Grønn 2",
 		TrailDefinition.Difficulty.GREEN, "TrailHulderGreen2",
 		"hulderheimen", 620.0, 560.0,
-		["hulderheimen_button"]))
+		["hulderheimen"]))
 
 	# Nyestøl trails (top 700m, base 560m)
 	trails.append(_make_trail("trail_nyestol_green_1", "Nyestøl Grønn",
 		TrailDefinition.Difficulty.GREEN, "TrailNyestolGreen1",
 		"nyestøl", 700.0, 560.0,
-		["nyestol_tbar_1", "nyestol_tbar_2"]))
+		["nyestol_daafjell", "nyestol_slettekvaev"]))
 	trails.append(_make_trail("trail_nyestol_blue_1", "Nyestøl Blå 1",
 		TrailDefinition.Difficulty.BLUE, "TrailNyestolBlue1",
 		"nyestøl", 700.0, 560.0,
-		["nyestol_tbar_1", "nyestol_tbar_2"]))
+		["nyestol_daafjell", "nyestol_slettekvaev"]))
 	trails.append(_make_trail("trail_nyestol_blue_2", "Nyestøl Blå 2",
 		TrailDefinition.Difficulty.BLUE, "TrailNyestolBlue2",
 		"nyestøl", 700.0, 580.0,
-		["nyestol_tbar_1", "nyestol_tbar_2"]))
+		["nyestol_daafjell", "nyestol_slettekvaev"]))
 	trails.append(_make_trail("trail_nyestol_red_1", "Nyestøl Rød",
 		TrailDefinition.Difficulty.RED, "TrailNyestolRed1",
 		"nyestøl", 700.0, 580.0,
-		["nyestol_tbar_1", "nyestol_tbar_2"]))
+		["nyestol_daafjell", "nyestol_slettekvaev"]))
 
 	# Ålsheia trails (summit 810m, base 560m)
 	trails.append(_make_trail("trail_alsheia_green_1", "Ålsheia Grønn 1",
 		TrailDefinition.Difficulty.GREEN, "TrailAlsheiaGreen1",
 		"ålsheia", 740.0, 560.0,
-		["alsheia_tbar_1", "alsheia_tbar_2"]))
+		["alsheia_tbar", "alsheia_single"]))
 	trails.append(_make_trail("trail_alsheia_green_2", "Ålsheia Grønn 2",
 		TrailDefinition.Difficulty.GREEN, "TrailAlsheiaGreen2",
 		"ålsheia", 650.0, 560.0,
-		["alsheia_button"]))
+		["alsheia_holen"]))
 	trails.append(_make_trail("trail_alsheia_blue_1", "Ålsheia Blå 1",
 		TrailDefinition.Difficulty.BLUE, "TrailAlsheiaBlue1",
 		"ålsheia", 810.0, 560.0,
-		["alsheia_tbar_1", "alsheia_tbar_2"]))
+		["alsheia_tbar", "alsheia_single"]))
 	trails.append(_make_trail("trail_alsheia_blue_2", "Ålsheia Blå 2",
 		TrailDefinition.Difficulty.BLUE, "TrailAlsheiaBlue2",
 		"ålsheia", 740.0, 560.0,
-		["alsheia_tbar_1", "alsheia_tbar_2"]))
+		["alsheia_tbar", "alsheia_single"]))
 	trails.append(_make_trail("trail_alsheia_red_1", "Ålsheia Rød",
 		TrailDefinition.Difficulty.RED, "TrailAlsheiaRed1",
 		"ålsheia", 810.0, 560.0,
-		["alsheia_tbar_1", "alsheia_tbar_2"]))
+		["alsheia_tbar", "alsheia_single"]))
+
+	# Children's area trails (trail runs beside lift)
+	trails.append(_make_trail("trail_alsheia_barnetrekk", "Ålsheia Barnetrekk",
+		TrailDefinition.Difficulty.GREEN, "TrailAlsheiaBarnetrekk",
+		"ålsheia", 580.0, 560.0,
+		["alsheia_barnetrekk"]))
+	trails.append(_make_trail("trail_hulder_rope", "Hulderheimen Tautrekk",
+		TrailDefinition.Difficulty.GREEN, "TrailHulderRope",
+		"hulderheimen", 575.0, 560.0,
+		["hulderheimen_rope"]))
 
 	# Cross-mountain connection trails
+	# Trails 5+7: From chairlift summit to Nyestøl
 	trails.append(_make_trail("trail_connect_tjørhom_nyestol", "Forbindelse Tjørhom-Nyestøl",
 		TrailDefinition.Difficulty.BLUE, "TrailConnectTjorhomNyestol",
-		"tjørhomfjellet", 776.0, 560.0,
-		["nyestol_tbar_1"]))
+		"tjørhomfjellet", 928.0, 560.0,
+		["nyestol_daafjell"]))
+	# Nyestøl to Ålsheia traverse
 	trails.append(_make_trail("trail_connect_nyestol_alsheia", "Forbindelse Nyestøl-Ålsheia",
 		TrailDefinition.Difficulty.GREEN, "TrailConnectNyestolAlsheia",
 		"nyestøl", 700.0, 560.0,
-		["alsheia_tbar_1"]))
+		["alsheia_tbar"]))
+	# Trail 15: From Ålsheia to Nyestøl
+	trails.append(_make_trail("trail_connect_alsheia_nyestol", "Forbindelse Ålsheia-Nyestøl",
+		TrailDefinition.Difficulty.GREEN, "TrailConnectAlsheiaNyestol",
+		"ålsheia", 810.0, 560.0,
+		["nyestol_daafjell"]))
 
 
 static func _create_parking() -> void:
@@ -207,25 +247,25 @@ static func _create_parking() -> void:
 
 	# Main parking at Hulderheimen (lower left of map)
 	parking.append(_make_parking("parking_hulderheimen", "Hulderheimen P",
-		Vector2(650, 2100), ["hulderheimen_button", "tjørhom_tbar"], "WalkHulderheimen"))
+		Vector2(500, 2050), ["hulderheimen", "tjørhom_chair"], "WalkHulderheimen"))
 
 	# Parking near Tjørhomfjellet
 	parking.append(_make_parking("parking_tjørhom", "Tjørhomfjellet P",
-		Vector2(1200, 2000), ["tjørhom_chair", "tjørhom_tbar"], "WalkTjorhom"))
+		Vector2(1100, 1950), ["tjørhom_chair"], "WalkTjorhom"))
 
-	# Parking near Nyestøl
-	parking.append(_make_parking("parking_nyestol", "Nyestøl P",
-		Vector2(2800, 2100), ["nyestol_tbar_1"], "WalkNyestol"))
+	# No parking at Nyestøl — access via trails from Tjørhomfjellet and Ålsheia
 
 	# Parking near Ålsheia
 	parking.append(_make_parking("parking_alsheia", "Ålsheia P",
-		Vector2(4400, 1900), ["alsheia_tbar_1", "alsheia_button"], "WalkAlsheia"))
+		Vector2(4100, 1880), ["alsheia_tbar", "alsheia_holen"], "WalkAlsheia"))
 
 
 static func _make_lift(id: String, name: String, type: LiftDefinition.LiftType,
 		speed: float, path_name: String, cap: int,
 		base_elev: float, summit_elev: float,
-		trail_ids: Array) -> LiftDefinition:
+		trail_ids: Array,
+		p_open_time: float = 34200.0, p_close_time: float = 55800.0,
+		p_capacity_per_hour: int = 600) -> LiftDefinition:
 	var l := LiftDefinition.new()
 	l.id = id
 	l.display_name = name
@@ -236,6 +276,9 @@ static func _make_lift(id: String, name: String, type: LiftDefinition.LiftType,
 	l.base_elevation = base_elev
 	l.summit_elevation = summit_elev
 	l.connected_trail_ids = PackedStringArray(trail_ids)
+	l.open_time = p_open_time
+	l.close_time = p_close_time
+	l.capacity_per_hour = p_capacity_per_hour
 	return l
 
 

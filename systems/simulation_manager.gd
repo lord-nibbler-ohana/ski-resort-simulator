@@ -1,8 +1,14 @@
 extends Node
 
 signal speed_changed(new_speed: float)
+signal day_end_reached()
+
+const DAY_START := 34200.0  # 09:30 in seconds since midnight
+const DAY_END := 57600.0    # 16:00
 
 var sim_speed: float = 1.0
+var game_time: float = DAY_START
+var day_ended: bool = false
 var total_cars_arrived: int = 0
 var total_skiers_spawned: int = 0
 
@@ -42,9 +48,24 @@ func create_group(skiers: Array[Skier]) -> int:
 	return gid
 
 
-func _process(_delta: float) -> void:
+func get_time_string() -> String:
+	var hours := int(game_time) / 3600
+	var minutes := (int(game_time) % 3600) / 60
+	return "%02d:%02d" % [hours, minutes]
+
+
+func _process(delta: float) -> void:
 	if sim_speed <= 0.0:
 		return
+
+	# Advance game clock
+	if not day_ended:
+		game_time += delta * sim_speed
+		if game_time >= DAY_END:
+			game_time = DAY_END
+			day_ended = true
+			day_end_reached.emit()
+
 	_check_group_waits()
 
 
@@ -83,6 +104,8 @@ func get_stats() -> Dictionary:
 		"total_spawned": total_skiers_spawned,
 		"total_cars": total_cars_arrived,
 		"sim_speed": sim_speed,
+		"time_display": get_time_string(),
+		"day_ended": day_ended,
 		"wind": WeatherSystem.wind_speed,
 		"chairlift_ok": WeatherSystem.chairlift_operational,
 	}

@@ -12,6 +12,9 @@ enum LiftType { CHAIRLIFT, TBAR, BUTTON }
 @export var base_elevation: float  # meters above sea level
 @export var summit_elevation: float
 @export var connected_trail_ids: PackedStringArray
+@export var open_time: float = 34200.0       # seconds since midnight (default 09:30)
+@export var close_time: float = 55800.0      # last ride time (default 15:30)
+@export var capacity_per_hour: int = 600     # passengers per hour
 
 
 func get_speed_display() -> String:

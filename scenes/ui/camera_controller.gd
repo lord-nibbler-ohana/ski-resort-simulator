@@ -16,9 +16,12 @@ func _ready() -> void:
 	limit_left = 0
 	limit_top = 0
 	limit_right = map_width
-	limit_bottom = map_height
-	position = Vector2(map_width / 2.0, map_height / 2.0)
-	zoom = Vector2(0.4, 0.4)
+	# Extend bottom limit to allow empty space below map for the UI panel
+	var visible_height := 1080.0 / 0.346
+	limit_bottom = int(visible_height)
+	zoom = Vector2(0.346, 0.346)
+	# Align map top with viewport top
+	position = Vector2(map_width / 2.0, visible_height / 2.0)
 
 
 func _process(delta: float) -> void:

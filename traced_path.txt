@@ -1,0 +1,5 @@
+# Traced 2 points — paste into PathBuilder:
+[
+	Vector2(1476, 2166),
+	Vector2(1442, 2068)
+]

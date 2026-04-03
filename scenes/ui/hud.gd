@@ -1,5 +1,6 @@
 extends CanvasLayer
 
+@onready var time_label: Label = %TimeLabel
 @onready var stats_label: Label = %StatsLabel
 @onready var weather_label: Label = %WeatherLabel
 @onready var queue_label: Label = %QueueLabel
@@ -25,6 +26,12 @@ func _process(delta: float) -> void:
 func _update_display() -> void:
 	var stats := SimulationManager.get_stats()
 
+	if time_label:
+		var time_text: String = stats["time_display"]
+		if stats["day_ended"]:
+			time_text += " (CLOSED)"
+		time_label.text = time_text
+
 	if stats_label:
 		stats_label.text = "Skiers: %d | Cars: %d | Total spawned: %d" % [
 			stats["active_skiers"], stats["total_cars"], stats["total_spawned"]]
@@ -47,7 +54,8 @@ func _update_display() -> void:
 		queue_label.text = queue_text + ", ".join(parts) if not parts.is_empty() else "Queues: empty"
 
 	if speed_label:
-		speed_label.text = "Speed: %gx" % SimulationManager.sim_speed
+		var spd := SimulationManager.sim_speed
+		speed_label.text = "Speed: %sx" % (str(int(spd)) if spd == float(int(spd)) else str(spd))
 
 
 func _setup_speed_buttons() -> void:
@@ -62,12 +70,16 @@ func _on_speed_1x_pressed() -> void:
 	SimulationManager.set_sim_speed(1.0)
 
 
-func _on_speed_2x_pressed() -> void:
-	SimulationManager.set_sim_speed(2.0)
-
-
 func _on_speed_4x_pressed() -> void:
 	SimulationManager.set_sim_speed(4.0)
+
+
+func _on_speed_10x_pressed() -> void:
+	SimulationManager.set_sim_speed(10.0)
+
+
+func _on_speed_25x_pressed() -> void:
+	SimulationManager.set_sim_speed(25.0)
 
 
 func _on_chairlift_stopped() -> void:

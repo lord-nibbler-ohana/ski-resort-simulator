@@ -49,6 +49,20 @@ func _process(_delta: float) -> void:
 
 func _process_lift_queue(lift: LiftDefinition) -> void:
 	var queue: Array = _queues.get(lift.id, [])
+	var current_time := SimulationManager.game_time
+
+	# Lift not open yet — hold the queue
+	if current_time < lift.open_time:
+		return
+
+	# Past last ride — release all remaining queued skiers
+	if current_time > lift.close_time:
+		if not queue.is_empty():
+			for skier: Skier in queue:
+				SkierPool.release(skier)
+			queue.clear()
+		return
+
 	if queue.is_empty():
 		return
 
@@ -118,6 +132,8 @@ func _on_skier_reached_lift_top(skier: Skier, lift: LiftDefinition) -> void:
 	SkierPool.release(skier)
 
 
+const CHAIRLIFT_QUEUE_THRESHOLD := 20
+
 func _on_skier_reached_trail_bottom(skier: Skier, trail: TrailDefinition) -> void:
 	skier.arrive_at_base()
 
@@ -126,13 +142,45 @@ func _on_skier_reached_trail_bottom(skier: Skier, trail: TrailDefinition) -> voi
 		skier.waiting_for_group = true
 		# Check after a short delay (handled by group system in SimulationManager)
 
+	# Lunch check: between 11:30-13:30, if hasn't eaten yet
+	if not skier.has_eaten_lunch:
+		var time := SimulationManager.game_time
+		if time >= 41400.0 and time <= 48600.0:  # 11:30 to 13:30
+			if randf() < 0.3:  # 30% chance per run during lunch window
+				skier.start_lunch()
+				skier.reached_path_end.connect(
+					_requeue_after_lunch.bind(skier, trail), CONNECT_ONE_SHOT)
+				return
+
 	# Decide: ski again or leave?
 	if skier.should_leave():
 		SkierPool.release(skier)
 		return
 
-	# Pick next lift
-	var next_lift := ResortData.get_random_lift_from_trail(trail.id)
+	# Pick next lift with queue-aware routing
+	var next_lift := _pick_next_lift(trail)
+	if next_lift:
+		enqueue(next_lift.id, skier)
+	else:
+		SkierPool.release(skier)
+
+
+func _pick_next_lift(trail: TrailDefinition) -> LiftDefinition:
+	# Queue-aware routing: if chairlift queue is long, prefer Nyestøl
+	var chair_queue := get_queue_length("tjørhom_chair")
+	if chair_queue > CHAIRLIFT_QUEUE_THRESHOLD:
+		if trail.mountain_area == "tjørhomfjellet" and randf() < 0.6:
+			var nyestol_lift := ResortData.get_lift("nyestol_daafjell")
+			if nyestol_lift:
+				return nyestol_lift
+	return ResortData.get_random_lift_from_trail(trail.id)
+
+
+func _requeue_after_lunch(skier: Skier, trail: TrailDefinition) -> void:
+	if skier.should_leave():
+		SkierPool.release(skier)
+		return
+	var next_lift := _pick_next_lift(trail)
 	if next_lift:
 		enqueue(next_lift.id, skier)
 	else:

@@ -82,8 +82,8 @@ func test_chairlift_speed_is_15() -> void:
 func test_other_lift_speed_is_8() -> void:
 	for lift in ResortData.lifts:
 		if lift.lift_type != LiftDefinition.LiftType.CHAIRLIFT:
-			assert_eq(lift.speed_kmh, 8.0,
-				"Non-chairlift %s should be 8 km/h" % lift.id)
+			assert_true(lift.speed_kmh >= 2.0 and lift.speed_kmh <= 8.0,
+				"Non-chairlift %s should be 2-8 km/h (got %s)" % [lift.id, lift.speed_kmh])
 
 
 func test_elevation_consistency() -> void:
@@ -108,7 +108,7 @@ func test_get_random_lift_from_trail() -> void:
 
 
 func test_expected_lift_count() -> void:
-	assert_eq(ResortData.lifts.size(), 8, "Should have 8 lifts")
+	assert_eq(ResortData.lifts.size(), 10, "Should have 10 lifts")
 
 
 func test_has_one_chairlift() -> void:
